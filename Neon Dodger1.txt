@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Dodger - Survival Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            text-align: center;
+            background: black;
+            color: white;
+        }
+
+        h1 {
+            margin-top: 20px;
+            color: cyan;
+        }
+
+        #game-container {
+            position: relative;
+            width: 400px;
+            height: 500px;
+            background: #111;
+            overflow: hidden;
+            border: 5px solid cyan;
+            margin: 20px auto;
+            border-radius: 10px;
+        }
+
+        .player {
+            position: absolute;
+            bottom: 20px;
+            left: 180px;
+            width: 40px;
+            height: 40px;
+            background: cyan;
+            border-radius: 50%;
+            box-shadow: 0 0 10px cyan;
+        }
+
+        .enemy {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: red;
+            border-radius: 50%;
+            box-shadow: 0 0 10px red;
+        }
+
+        #score {
+            font-size: 1.5rem;
+            margin-top: 10px;
+            color: cyan;
+        }
+    </style>
+</head>
+<body>
+    <h1>⚡ Neon Dodger ⚡</h1>
+    <p id="score">Time Survived: 0s</p>
+    <div id="game-container">
+        <div class="player" id="player"></div>
+    </div>
+
+    <script>
+        const player = document.getElementById("player");
+        const gameContainer = document.getElementById("game-container");
+        const scoreText = document.getElementById("score");
+
+        let gameRunning = true;
+        let enemies = [];
+        let timeSurvived = 0;
+
+        document.addEventListener("keydown", (e) => {
+            let x = player.offsetLeft;
+            let y = player.offsetTop;
+
+            if (e.key === "ArrowLeft" && x > 10) player.style.left = `${x - 30}px`;
+            if (e.key === "ArrowRight" && x < 350) player.style.left = `${x + 30}px`;
+            if (e.key === "ArrowUp" && y > 10) player.style.top = `${y - 30}px`;
+            if (e.key === "ArrowDown" && y < 450) player.style.top = `${y + 30}px`;
+        });
+
+        function spawnEnemy() {
+            let enemy = document.createElement("div");
+            enemy.classList.add("enemy");
+
+            let x = Math.random() * (gameContainer.offsetWidth - 30);
+            enemy.style.left = `${x}px`;
+            enemy.style.top = `-30px`;
+
+            gameContainer.appendChild(enemy);
+            enemies.push(enemy);
+
+            let speed = Math.random() * 5 + 2;
+
+            let interval = setInterval(() => {
+                if (!gameRunning) {
+                    clearInterval(interval);
+                    return;
+                }
+
+                let enemyY = parseInt(enemy.style.top);
+                enemy.style.top = `${enemyY + speed}px`;
+
+                if (enemyY > gameContainer.offsetHeight) {
+                    enemy.remove();
+                    enemies = enemies.filter(e => e !== enemy);
+                }
+
+                if (collision(player, enemy)) {
+                    gameOver();
+                }
+            }, 30);
+        }
+
+        function collision(player, enemy) {
+            let pRect = player.getBoundingClientRect();
+            let eRect = enemy.getBoundingClientRect();
+
+            return !(
+                pRect.top > eRect.bottom ||
+                pRect.bottom < eRect.top ||
+                pRect.left > eRect.right ||
+                pRect.right < eRect.left
+            );
+        }
+
+        function gameOver() {
+            gameRunning = false;
+            alert(`💀 Game Over! You survived for ${timeSurvived} seconds!`);
+            window.location.reload();
+        }
+
+        function startGame() {
+            setInterval(() => {
+                if (gameRunning) {
+                    timeSurvived++;
+                    scoreText.innerText = `Time Survived: ${timeSurvived}s`;
+                }
+            }, 1000);
+
+            setInterval(() => {
+                if (gameRunning) {
+                    spawnEnemy();
+                }
+            }, 1000);
+        }
+
+        startGame();
+    </script>
+</body>
+</html>
